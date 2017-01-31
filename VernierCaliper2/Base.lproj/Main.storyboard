@@ -45,16 +45,20 @@
                                 <rect key="frame" x="0.0" y="0.0" width="667" height="375"/>
                                 <color key="backgroundColor" red="1" green="0.0" blue="0.0" alpha="0.5" colorSpace="calibratedRGB"/>
                             </view>
+                            <view opaque="NO" contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="Jf2-lT-j41" customClass="VCVernierView" customModule="VernierCaliper2" customModuleProvider="target">
+                                <rect key="frame" x="0.0" y="108" width="667" height="223"/>
+                                <color key="backgroundColor" white="0.0" alpha="0.0" colorSpace="calibratedWhite"/>
+                                <gestureRecognizers/>
+                                <connections>
+                                    <outletCollection property="gestureRecognizers" destination="AAI-AQ-mZJ" appends="YES" id="ASK-Re-qxi"/>
+                                </connections>
+                            </view>
                             <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="lXy-dr-FbV" customClass="VCInputBar" customModule="VernierCaliper2" customModuleProvider="target">
                                 <rect key="frame" x="0.0" y="64" width="667" height="44"/>
                                 <color key="backgroundColor" white="1" alpha="1" colorSpace="calibratedWhite"/>
                                 <constraints>
                                     <constraint firstAttribute="height" constant="44" id="Atd-Bb-Rlj"/>
                                 </constraints>
-                            </view>
-                            <view opaque="NO" contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="Jf2-lT-j41" customClass="VCVernierView" customModule="VernierCaliper2" customModuleProvider="target">
-                                <rect key="frame" x="0.0" y="108" width="667" height="223"/>
-                                <color key="backgroundColor" white="0.0" alpha="0.0" colorSpace="calibratedWhite"/>
                             </view>
                             <visualEffectView hidden="YES" opaque="NO" contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="ZQw-BO-mU4">
                                 <rect key="frame" x="0.0" y="64" width="667" height="267"/>
@@ -72,7 +76,7 @@
                                                         <constraint firstAttribute="height" relation="greaterThanOrEqual" constant="50" id="s94-Qf-CoW"/>
                                                     </constraints>
                                                     <fontDescription key="fontDescription" type="system" pointSize="17"/>
-                                                    <nil key="textColor"/>
+                                                    <color key="textColor" cocoaTouchSystemColor="lightTextColor"/>
                                                     <nil key="highlightedColor"/>
                                                 </label>
                                                 <stackView opaque="NO" contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="E2U-ru-Ng5">
@@ -119,7 +123,7 @@
                                         <constraint firstItem="pNz-hn-MSl" firstAttribute="centerY" secondItem="Edc-v0-oND" secondAttribute="centerY" id="neO-10-66v"/>
                                     </constraints>
                                 </view>
-                                <blurEffect style="light"/>
+                                <blurEffect style="dark"/>
                             </visualEffectView>
                         </subviews>
                         <color key="backgroundColor" white="1" alpha="1" colorSpace="calibratedWhite"/>
@@ -210,6 +214,7 @@
                         <outlet property="spaceItem" destination="WxV-Fq-QmR" id="7RN-GT-yGe"/>
                         <outlet property="timeLeftItem" destination="0hG-vC-TL3" id="bta-og-6NW"/>
                         <outlet property="timeLimitItem" destination="6mk-XE-yvp" id="tDE-Vl-hbk"/>
+                        <outlet property="vernierView" destination="Jf2-lT-j41" id="rLB-zb-Vrl"/>
                         <outlet property="zeroItem" destination="ASY-j6-7Ru" id="nqK-bm-vTH"/>
                     </connections>
                 </viewController>
@@ -219,6 +224,11 @@
                         <action selector="dismissKeyboard:" destination="kpO-Lh-Ild" id="CvX-ll-Xeo"/>
                     </connections>
                 </tapGestureRecognizer>
+                <panGestureRecognizer minimumNumberOfTouches="1" id="AAI-AQ-mZJ">
+                    <connections>
+                        <action selector="handleDrags:" destination="Jf2-lT-j41" id="jAX-q8-6PS"/>
+                    </connections>
+                </panGestureRecognizer>
             </objects>
             <point key="canvasLocation" x="475.41229385307349" y="80.799999999999997"/>
         </scene>

@@ -55,6 +55,8 @@ class VCAppController: UIViewController, VCInputBarDelegate {
     
     @IBOutlet weak var inputBar: VCInputBar!
     
+    @IBOutlet weak var vernierView: VCVernierView!
+    
     @IBOutlet var precisionItem: UIBarButtonItem!
     
     @IBOutlet var zeroItem: UIBarButtonItem!
@@ -107,11 +109,15 @@ class VCAppController: UIViewController, VCInputBarDelegate {
         let practicePrecisionAlert = UIAlertController(title: "Precision", message: nil, preferredStyle: .actionSheet)
         let practicePoint01Action = UIAlertAction(title: Precision.point01.rawValue, style: .default, handler: { _ in
             self.modeSettings[.practice]!.precision = .point01
-            self.updateViews()
+            self.vernierView.precision = .point01
+            self.updateButtonTitles()
+            self.newObject()
         })
         let practicePoint05Action = UIAlertAction(title: Precision.point005.rawValue, style: .default, handler: { _ in
             self.modeSettings[.practice]!.precision = .point005
-            self.updateViews()
+            self.vernierView.precision = .point005
+            self.updateButtonTitles()
+            self.newObject()
         })
         practicePrecisionAlert.addAction(practicePoint01Action)
         practicePrecisionAlert.addAction(practicePoint05Action)
@@ -120,15 +126,15 @@ class VCAppController: UIViewController, VCInputBarDelegate {
         let newGamePrecisionAlert = UIAlertController(title: "Precision", message: nil, preferredStyle: .actionSheet)
         let newGamePoint01Action = UIAlertAction(title: Precision.point01.rawValue, style: .default, handler: { _ in
             self.modeSettings[.newGame]!.precision = .point01
-            self.updateViews()
+            self.updateButtonTitles()
         })
         let newGamePoint05Action = UIAlertAction(title: Precision.point005.rawValue, style: .default, handler: { _ in
             self.modeSettings[.newGame]!.precision = .point005
-            self.updateViews()
+            self.updateButtonTitles()
         })
         let newGameRandomAction = UIAlertAction(title: Precision.random.rawValue, style: .default, handler: { _ in
             self.modeSettings[.newGame]!.precision = .random
-            self.updateViews()
+            self.updateButtonTitles()
         })
         newGamePrecisionAlert.addAction(newGamePoint01Action)
         newGamePrecisionAlert.addAction(newGamePoint05Action)
@@ -139,15 +145,15 @@ class VCAppController: UIViewController, VCInputBarDelegate {
         // Initialize timeLimitAlert.
         let sixtyAction = UIAlertAction(title: TimeLimit.sixty.rawValue, style: .default, handler: { _ in
             self.modeSettings[.newGame]!.timeLimit = .sixty
-            self.updateViews()
+            self.updateButtonTitles()
         })
         let thirtyAction = UIAlertAction(title: TimeLimit.thirty.rawValue, style: .default, handler: { _ in
             self.modeSettings[.newGame]!.timeLimit = .thirty
-            self.updateViews()
+            self.updateButtonTitles()
         })
         let fifteenAction = UIAlertAction(title: TimeLimit.fifteen.rawValue, style: .default, handler: { _ in
             self.modeSettings[.newGame]!.timeLimit = .fifteen
-            self.updateViews()
+            self.updateButtonTitles()
         })
         timeLimitAlert.addAction(sixtyAction)
         timeLimitAlert.addAction(thirtyAction)
@@ -159,7 +165,11 @@ class VCAppController: UIViewController, VCInputBarDelegate {
         NotificationCenter.default.addObserver(self, selector: #selector(keyboardWillHide(_:)), name: .UIKeyboardWillHide, object: nil)
         
         // Update views.
-        updateViews()
+        updateUIState()
+        updateButtonTitles()
+        
+        // Generate a new object.
+        newObject()
     }
     
     // MARK: - Actions
@@ -169,7 +179,8 @@ class VCAppController: UIViewController, VCInputBarDelegate {
         currentMode = sender.selectedSegmentIndex == 0 ? .practice : .newGame
         
         // Update views.
-        updateViews()
+        updateUIState()
+        updateButtonTitles()
     }
     
     @IBAction func precisionPressed(_ sender: UIBarButtonItem) {
@@ -179,12 +190,14 @@ class VCAppController: UIViewController, VCInputBarDelegate {
     
     @IBAction func zeroPressed(_ sender: UIBarButtonItem) {
         modeSettings[currentMode]!.zero = !modeSettings[currentMode]!.zero
-        updateViews()
+        vernierView.zero = modeSettings[currentMode]!.zero
+        updateButtonTitles()
     }
     
     @IBAction func arrowsPressed(_ sender: UIBarButtonItem) {
         modeSettings[currentMode]!.arrows = !modeSettings[currentMode]!.arrows
-        updateViews()
+        vernierView.arrows = modeSettings[currentMode]!.arrows
+        updateButtonTitles()
     }
     
     @IBAction func timeLimitPressed(_ sender: UIBarButtonItem) {
@@ -193,6 +206,7 @@ class VCAppController: UIViewController, VCInputBarDelegate {
     }
     
     @IBAction func newPressed(_ sender: UIBarButtonItem) {
+        newObject()
     }
     
     @IBAction func quitPressed(_ sender: UIBarButtonItem) {
@@ -200,7 +214,7 @@ class VCAppController: UIViewController, VCInputBarDelegate {
         let yesAction = UIAlertAction(title: "Quit", style: .default, handler: { _ in
             self.gameState.timer?.invalidate()
             self.currentMode = .newGame
-            self.updateViews()
+            self.updateUIState()
         })
         let noAction = UIAlertAction(title: "Cancel", style: .cancel, handler: nil)
         alert.addAction(yesAction)
@@ -228,7 +242,10 @@ class VCAppController: UIViewController, VCInputBarDelegate {
             case .fifteen:
                 self.gameState.timeLeft = 15
             }
-            self.updateViews()
+            self.newObject()
+            self.vernierView.resetAll()
+            self.updateUIState()
+            self.updateGameTitles()
             self.gameState.timer = Timer.scheduledTimer(timeInterval: 1.0, target: self, selector: #selector(self.timerFired(_:)), userInfo: nil, repeats: true)
         })
         let noAction = UIAlertAction(title: "Cancel", style: .cancel, handler: nil)
@@ -243,7 +260,7 @@ class VCAppController: UIViewController, VCInputBarDelegate {
     
     @IBAction func dismissKeyboard(_ sender: Any) {
         view.endEditing(true)
-        updateViews()
+        updateUIState()
     }
     
     // MARK: - Methods
@@ -272,17 +289,8 @@ class VCAppController: UIViewController, VCInputBarDelegate {
         return "Time Left: " + String(gameState.timeLeft) + " s"
     }
     
-    private func updateViews() {
+    private func updateUIState() {
         newGameView.isHidden = currentMode != .newGame
-        
-        let currentSettings = modeSettings[currentMode == .game ? .newGame : currentMode]!
-        
-        precisionItem.title = label(forPrecision: currentSettings.precision)
-        zeroItem.title = label(forZero: currentSettings.zero)
-        arrowsItem.title = label(forArrows: currentSettings.arrows)
-        timeLimitItem.title = label(forTimeLimit: currentSettings.timeLimit)
-        scoreItem.title = labelForScore()
-        timeLeftItem.title = labelForTimeLeft()
         
         setToolbarItems(modeItems[currentMode], animated: true)
         
@@ -290,29 +298,63 @@ class VCAppController: UIViewController, VCInputBarDelegate {
         navigationController?.setToolbarHidden(false, animated: true)
     }
     
+    private func updateButtonTitles() {
+        let settings = currentSettings()
+        
+        precisionItem.title = label(forPrecision: settings.precision)
+        zeroItem.title = label(forZero: settings.zero)
+        arrowsItem.title = label(forArrows: settings.arrows)
+        timeLimitItem.title = label(forTimeLimit: settings.timeLimit)
+    }
+    
+    private func updateGameTitles() {
+        scoreItem.title = labelForScore()
+        timeLeftItem.title = labelForTimeLeft()
+    }
+    
+    private func currentSettings() -> Settings {
+        return modeSettings[currentMode == .game ? .newGame : currentMode]!
+    }
+    
+    private func newObject() {
+        let settings = currentSettings()
+        // TODO: account for random
+        if settings.precision == .point01 {
+            vernierView.answer = Double(arc4random() % 250 + 30)
+        } else {
+            vernierView.answer = Double(arc4random() % 500) / 2.0 + 30.0
+        }
+    }
+    
     func timerFired(_ timer: Timer) {
         gameState.timeLeft -= 1
-        updateViews()
+        updateGameTitles()
         if gameState.timeLeft <= 5 && gameState.timeLeft > 0 {
             UIView.animateKeyframes(withDuration: 0.5, delay: 0, animations: {
                 UIView.addKeyframe(withRelativeStartTime: 0.0, relativeDuration: 0.25, animations: {
                     self.alertView.alpha = 1
                 })
-                UIView.addKeyframe(withRelativeStartTime: 0.25, relativeDuration: 0.5, animations: {
+                UIView.addKeyframe(withRelativeStartTime: 0.25, relativeDuration: 0.25, animations: {
                     self.alertView.alpha = 0
                 })
             }, completion: nil)
         }
         if gameState.timeLeft == 0 {
-            self.gameState.timer?.invalidate()
+            gameState.timer?.invalidate()
+            inputBar.dismiss()
             let alert = UIAlertController(title: "Time's Up", message: "Your final score is " + String(gameState.score) + "!", preferredStyle: .alert)
             let yesAction = UIAlertAction(title: "Submit", style: .default, handler: { _ in
                 // TODO: Submit to Game Center
                 self.currentMode = .newGame
-                self.updateViews()
-                self.inputBar.dismiss()
+                self.updateUIState()
+                
+            })
+            let noAction = UIAlertAction(title: "Cancel", style: .cancel, handler: { _ in
+                self.currentMode = .newGame
+                self.updateUIState()
             })
             alert.addAction(yesAction)
+            alert.addAction(noAction)
             if presentedViewController != nil {
                 dismiss(animated: true, completion: nil)
             }
@@ -323,19 +365,38 @@ class VCAppController: UIViewController, VCInputBarDelegate {
     // MARK: - Notification handlers
     
     func keyboardWillShow(_ aNotification: Notification) {
-        print("DEBUG: keyboardwillshow")
+        UIView.animate(withDuration: TimeInterval(UINavigationControllerHideShowBarDuration), animations: {
+            self.vernierView.frame.origin.y -= (self.vernierView.origin.y - 20.0)
+        })
     }
     
     func keyboardWillHide(_ aNotification: Notification) {
-        print("DEBUG: keyboardwillhide")
+        UIView.animate(withDuration: TimeInterval(UINavigationControllerHideShowBarDuration), animations: {
+            self.vernierView.frame.origin.y = self.inputBar.frame.maxY
+        })
+        updateUIState()
     }
     
     // MARK: - VCInputBarDelegate
     
     func checkPressed() {
-        print("DEBUG: checkpressed")
-        let alert = UIAlertController(title: "Check", message: "Dummy message", preferredStyle: .alert)
-        let yesAction = UIAlertAction(title: "OK", style: .default, handler: nil)
+        var success = false
+        var message = "That is incorrect. Please try again."
+        if let result = inputBar.doubleValue {
+            if Int(result * 1000) == Int(vernierView.answer * 10) {
+                success = true
+                message = "You got it right! Let's try another."
+                gameState.score += 1
+                inputBar.dismiss()
+                updateGameTitles()
+            }
+        }
+        let alert = UIAlertController(title: "Check", message: message, preferredStyle: .alert)
+        let yesAction = UIAlertAction(title: "OK", style: .default, handler: { _ in
+            if success {
+                self.newObject()
+            }
+        })
         alert.addAction(yesAction)
         present(alert, animated: true, completion: nil)
     }
