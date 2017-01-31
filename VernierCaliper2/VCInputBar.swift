@@ -63,6 +63,10 @@ protocol VCInputBarDelegate: class {
         textField.resignFirstResponder()
     }
     
+    func clear() {
+        textField.text = ""
+    }
+    
     // MARK: - UIView overrides
     
     override func sizeThatFits(_ size: CGSize) -> CGSize {
