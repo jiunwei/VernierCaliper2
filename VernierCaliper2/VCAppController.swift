@@ -109,13 +109,11 @@ class VCAppController: UIViewController, VCInputBarDelegate {
         let practicePrecisionAlert = UIAlertController(title: "Precision", message: nil, preferredStyle: .actionSheet)
         let practicePoint01Action = UIAlertAction(title: Precision.point01.rawValue, style: .default, handler: { _ in
             self.modeSettings[.practice]!.precision = .point01
-            self.vernierView.precision = .point01
             self.updateButtonTitles()
             self.newObject()
         })
         let practicePoint05Action = UIAlertAction(title: Precision.point005.rawValue, style: .default, handler: { _ in
             self.modeSettings[.practice]!.precision = .point005
-            self.vernierView.precision = .point005
             self.updateButtonTitles()
             self.newObject()
         })
@@ -179,6 +177,7 @@ class VCAppController: UIViewController, VCInputBarDelegate {
         currentMode = sender.selectedSegmentIndex == 0 ? .practice : .newGame
         
         // Update views.
+        vernierView.resetAll()
         updateUIState()
         updateButtonTitles()
     }
@@ -243,7 +242,6 @@ class VCAppController: UIViewController, VCInputBarDelegate {
                 self.gameState.timeLeft = 15
             }
             self.newObject()
-            self.vernierView.resetAll()
             self.updateUIState()
             self.updateGameTitles()
             self.gameState.timer = Timer.scheduledTimer(timeInterval: 1.0, target: self, selector: #selector(self.timerFired(_:)), userInfo: nil, repeats: true)
@@ -318,11 +316,24 @@ class VCAppController: UIViewController, VCInputBarDelegate {
     
     private func newObject() {
         let settings = currentSettings()
-        // TODO: account for random
-        if settings.precision == .point01 {
-            vernierView.answer = Double(arc4random() % 250 + 30)
-        } else {
-            vernierView.answer = Double(arc4random() % 500) / 2.0 + 30.0
+        let point01Answer = Double(arc4random() % 250 + 30)
+        let point005Answer = Double(arc4random() % 500) / 2.0 + 30.0
+        
+        switch settings.precision {
+        case .point01:
+            vernierView.precision = .point01
+            vernierView.answer = point01Answer
+        case .point005:
+            vernierView.precision = .point005
+            vernierView.answer = point005Answer
+        case .random:
+            if arc4random() % 2 == 0 {
+                vernierView.precision = .point01
+                vernierView.answer = point01Answer
+            } else {
+                vernierView.precision = .point005
+                vernierView.answer = point005Answer
+            }
         }
     }
     

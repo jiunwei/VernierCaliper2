@@ -337,7 +337,7 @@ import UIKit
                            width: CGFloat = 2.0, clip: Bool = true, custom: (() -> Void)? = nil) {
         let scaledSize = CGSize(width: size.width * scale, height: size.height * scale)
         layer.bounds.size = scaledSize
-        UIGraphicsBeginImageContextWithOptions(scaledSize, false, 0)
+        UIGraphicsBeginImageContextWithOptions(scaledSize, false, UIScreen.main.scale * 2.0)
         let context = UIGraphicsGetCurrentContext()!
         context.saveGState()
         context.scaleBy(x: scale, y: scale)
