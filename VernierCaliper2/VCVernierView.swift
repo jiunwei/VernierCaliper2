@@ -51,17 +51,20 @@ import UIKit
             }
             reset(layer: vernierScaleLayer)
             redraw(layer: vernierScaleLayer)
+            positionArrows()
         }
     }
     
-    var zero = true {
+    var zero = 0.0 {
         didSet {
-            
+            mainScaleLinesLayer.position.x = CGFloat(zero) * scale
+            positionArrows()
         }
     }
     
-    var arrows = false {
+    var arrows = true {
         didSet {
+            positionArrows()
             topArrowLayer.isHidden = !arrows
             bottomArrowLayer.isHidden = !arrows
         }
@@ -92,6 +95,10 @@ import UIKit
     private var point01Lines = UIBezierPath()
     
     private var point005Lines = UIBezierPath()
+    
+    private var topArrow = UIBezierPath()
+    
+    private var bottomArrow = UIBezierPath()
     
     private var mainScaleLayer = CALayer()
     
@@ -197,6 +204,26 @@ import UIKit
             x += 9.5
         }
         
+        // Create top arrow bezier path.
+        topArrow.move(to: CGPoint(x: 6, y: 30))
+        topArrow.addLine(to: CGPoint(x: 0, y: 18))
+        topArrow.addLine(to: CGPoint(x: 4, y: 18))
+        topArrow.addLine(to: CGPoint(x: 4, y: 0))
+        topArrow.addLine(to: CGPoint(x: 8, y: 0))
+        topArrow.addLine(to: CGPoint(x: 8, y: 18))
+        topArrow.addLine(to: CGPoint(x: 12, y: 18))
+        topArrow.close()
+        
+        // Create bottom arrow bezier path.
+        bottomArrow.move(to: CGPoint(x: 6, y: 0))
+        bottomArrow.addLine(to: CGPoint(x: 0, y: 12))
+        bottomArrow.addLine(to: CGPoint(x: 4, y: 12))
+        bottomArrow.addLine(to: CGPoint(x: 4, y: 30))
+        bottomArrow.addLine(to: CGPoint(x: 8, y: 30))
+        bottomArrow.addLine(to: CGPoint(x: 8, y: 12))
+        bottomArrow.addLine(to: CGPoint(x: 12, y: 12))
+        bottomArrow.close()
+        
         setup(layer: mainScaleLayer)
         layer.addSublayer(mainScaleLayer)
         
@@ -215,6 +242,12 @@ import UIKit
         setup(layer: point005LinesLayer)
         point005LinesLayer.isHidden = true
         vernierScaleLayer.addSublayer(point005LinesLayer)
+        
+        setup(layer: topArrowLayer, anchor: CGPoint(x: 0.5, y: 1.0))
+        layer.addSublayer(topArrowLayer)
+        
+        setup(layer: bottomArrowLayer, anchor: CGPoint(x: 0.5, y: 0.0))
+        vernierScaleLayer.addSublayer(bottomArrowLayer)
     }
     
     // MARK: - UIView overrides
@@ -253,11 +286,9 @@ import UIKit
             vernierScaleLayer.position.x = origin.x + vernierScaleX * scale
             point01LinesLayer.position.x = point01LinesX * scale
             point005LinesLayer.position.x = point005LinesX * scale
+            positionArrows()
         }
     }
-    
-    // MARK: - UIResponder overrides
-    
     
     // MARK: - Actions
     
@@ -293,6 +324,7 @@ import UIKit
                 }
                 newPosition.x = min(newPosition.x, bounds.width - vWidth * scale - margin)
                 vernierScaleLayer.position = newPosition
+                positionArrows()
             default:
                 break
             }
@@ -311,12 +343,14 @@ import UIKit
         reset(layer: vernierScaleLayer)
         reset(layer: point01LinesLayer)
         reset(layer: point005LinesLayer)
+        reset(layer: topArrowLayer)
+        reset(layer: bottomArrowLayer)
     }
     
-    private func setup(layer: CALayer) {
+    private func setup(layer: CALayer, anchor: CGPoint = CGPoint.zero) {
         // Disable implicit animation when position is changed.
         layer.actions = ["position": NSNull()]
-        layer.anchorPoint = CGPoint.zero
+        layer.anchorPoint = anchor
         reset(layer: layer)
     }
     
@@ -328,6 +362,10 @@ import UIKit
             layer.position = CGPoint(x: origin.x + 30.0 * scale, y: origin.y + (height - 40.0) * scale)
         case vernierScaleLayer:
             layer.position = CGPoint(x: origin.x + (width - vWidth) * scale, y: origin.y)
+        case topArrowLayer:
+            layer.position.y = origin.y + 50.0 * scale
+        case bottomArrowLayer:
+            layer.position.y = 80.0 * scale
         default:
             layer.position = CGPoint.zero
         }
@@ -401,6 +439,12 @@ import UIKit
                         NSString(string: "5").draw(at: CGPoint(x: 111.0, y: 80.0), withAttributes: vernierScaleTextAttributes)
                         NSString(string: "10").draw(at: CGPoint(x: 204.0, y: 80.0), withAttributes: vernierScaleTextAttributes)
             })
+        case topArrowLayer:
+            scaleDraw(layer: layer, path: topArrow, size: CGSize(width: 12.0, height: 30.0),
+                      fill: UIColor.red, stroke: UIColor.black)
+        case bottomArrowLayer:
+            scaleDraw(layer: layer, path: bottomArrow, size: CGSize(width: 12.0, height: 30.0),
+                      fill: UIColor.red, stroke: UIColor.black)
         default:
             break
         }
@@ -415,6 +459,31 @@ import UIKit
         redraw(layer: vernierScaleLayer)
         redraw(layer: point01LinesLayer)
         redraw(layer: point005LinesLayer)
+        redraw(layer: topArrowLayer)
+        redraw(layer: bottomArrowLayer)
+    }
+    
+    private func positionArrows() {
+        if !arrows {
+            return
+        }
+        let main0 = origin.x + CGFloat(50.0 + zero) * scale
+        let vernier0 = vernierScaleLayer.position.x + 20.0 * scale
+        let length = (vernier0 - main0) / scale
+        // Top and bottom arrows must agree on a quantized value of length.
+        // This prevents top arrow from shifting back while bottom arrow is still pointing at 0 on the vernier scale.
+        // This occurs if we use some calculation shortcuts based on the unquantized length.
+        var intervals: Int
+        switch precision {
+        case .point01:
+            intervals = Int(round(length))
+            topArrowLayer.position.x = main0 + CGFloat(floor(Double(intervals) / 10.0)) * 10.0 * scale
+            bottomArrowLayer.position.x = (20.0 + CGFloat((intervals + 10) % 10) * 9.0) * scale
+        case .point005:
+            intervals = Int(round(length * 2))
+            topArrowLayer.position.x = main0 + CGFloat(floor(Double(intervals) / 20.0)) * 10.0 * scale
+            bottomArrowLayer.position.x = (20.0 + CGFloat((intervals + 20) % 20) * 9.5) * scale
+        }
     }
 
 }

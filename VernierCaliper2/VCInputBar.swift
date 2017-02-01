@@ -85,4 +85,9 @@ protocol VCInputBarDelegate: class {
         return string.range(of: "^[\\d\\.,]*$", options: .regularExpression) != nil
     }
     
+    func textFieldShouldReturn(_ textField: UITextField) -> Bool {
+        checkPressed(textField)
+        return true
+    }
+    
 }

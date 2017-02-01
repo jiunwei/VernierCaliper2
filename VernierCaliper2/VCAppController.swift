@@ -32,7 +32,7 @@ class VCAppController: UIViewController, VCInputBarDelegate {
     
     struct Settings {
         var precision = Precision.point01
-        var zero = true
+        var zero = false
         var arrows = false
         var timeLimit = TimeLimit.sixty
     }
@@ -101,8 +101,11 @@ class VCAppController: UIViewController, VCInputBarDelegate {
         modeItems[.game] = [scoreItem, timeLeftItem, spaceItem, quitItem]
         
         // Initialize modeSettings.
-        modeSettings[.practice] = Settings(precision: .point01, zero: true, arrows: false, timeLimit: .sixty)
-        modeSettings[.newGame] = Settings(precision: .random, zero: true, arrows: false, timeLimit: .sixty)
+        // TODO: load from persistent store
+        // TODO: configure vernier view to actually follow settings
+        modeSettings[.practice] = Settings(precision: .point01, zero: false, arrows: false, timeLimit: .sixty)
+        modeSettings[.newGame] = Settings(precision: .random, zero: false, arrows: false, timeLimit: .sixty)
+        configureVernierView()
         
         // Initialize precisionAlerts.
         // Code is repeated since UIAlertActions cannot be used with multiple UIAlertControllers.
@@ -125,14 +128,17 @@ class VCAppController: UIViewController, VCInputBarDelegate {
         let newGamePoint01Action = UIAlertAction(title: Precision.point01.rawValue, style: .default, handler: { _ in
             self.modeSettings[.newGame]!.precision = .point01
             self.updateButtonTitles()
+            self.newObject()
         })
         let newGamePoint05Action = UIAlertAction(title: Precision.point005.rawValue, style: .default, handler: { _ in
             self.modeSettings[.newGame]!.precision = .point005
             self.updateButtonTitles()
+            self.newObject()
         })
         let newGameRandomAction = UIAlertAction(title: Precision.random.rawValue, style: .default, handler: { _ in
             self.modeSettings[.newGame]!.precision = .random
             self.updateButtonTitles()
+            self.newObject()
         })
         newGamePrecisionAlert.addAction(newGamePoint01Action)
         newGamePrecisionAlert.addAction(newGamePoint05Action)
@@ -165,19 +171,16 @@ class VCAppController: UIViewController, VCInputBarDelegate {
         // Update views.
         updateUIState()
         updateButtonTitles()
-        
-        // Generate a new object.
-        newObject()
     }
     
     // MARK: - Actions
     
     @IBAction func modeChanged(_ sender: UISegmentedControl) {
-        // Determine new mode.
+        // Determine new mode and configure vernier view.
         currentMode = sender.selectedSegmentIndex == 0 ? .practice : .newGame
+        configureVernierView()
         
         // Update views.
-        vernierView.resetAll()
         updateUIState()
         updateButtonTitles()
     }
@@ -189,14 +192,14 @@ class VCAppController: UIViewController, VCInputBarDelegate {
     
     @IBAction func zeroPressed(_ sender: UIBarButtonItem) {
         modeSettings[currentMode]!.zero = !modeSettings[currentMode]!.zero
-        vernierView.zero = modeSettings[currentMode]!.zero
         updateButtonTitles()
+        newZero()
     }
     
     @IBAction func arrowsPressed(_ sender: UIBarButtonItem) {
         modeSettings[currentMode]!.arrows = !modeSettings[currentMode]!.arrows
-        vernierView.arrows = modeSettings[currentMode]!.arrows
         updateButtonTitles()
+        vernierView.arrows = modeSettings[currentMode]!.arrows
     }
     
     @IBAction func timeLimitPressed(_ sender: UIBarButtonItem) {
@@ -316,25 +319,50 @@ class VCAppController: UIViewController, VCInputBarDelegate {
     
     private func newObject() {
         let settings = currentSettings()
-        let point01Answer = Double(arc4random() % 250 + 30)
-        let point005Answer = Double(arc4random() % 500) / 2.0 + 30.0
+        
+        func point01Object() {
+            vernierView.precision = .point01
+            vernierView.answer = Double(arc4random() % 250) + 30.0
+        }
+        
+        func point005Object() {
+            vernierView.precision = .point005
+            vernierView.answer = Double(arc4random() % 500) / 2.0 + 30.0
+        }
         
         switch settings.precision {
         case .point01:
-            vernierView.precision = .point01
-            vernierView.answer = point01Answer
+            point01Object()
         case .point005:
-            vernierView.precision = .point005
-            vernierView.answer = point005Answer
+            point005Object()
         case .random:
             if arc4random() % 2 == 0 {
-                vernierView.precision = .point01
-                vernierView.answer = point01Answer
+                point01Object()
             } else {
-                vernierView.precision = .point005
-                vernierView.answer = point005Answer
+                point005Object()
             }
         }
+        
+        newZero()
+        inputBar.clear()
+    }
+    
+    private func newZero() {
+        let settings = currentSettings()
+        
+        switch vernierView.precision {
+        case .point01:
+            vernierView.zero = settings.zero ? Double(arc4random() % 11) - 5.0 : 0.0
+        case .point005:
+            vernierView.zero = settings.zero ? Double(arc4random() % 22) / 2.0 - 5.0 : 0.0
+        }
+    }
+    
+    private func configureVernierView() {
+        let settings = currentSettings()
+        vernierView.arrows = settings.arrows
+        // Precision and zero are configured by calling newObject() since size of object must always match the precision used.
+        newObject()
     }
     
     func timerFired(_ timer: Timer) {
