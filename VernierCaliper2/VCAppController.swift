@@ -83,10 +83,6 @@ class VCAppController: UIViewController, VCInputBarDelegate {
     
     private var modeSettings = [Mode: Settings]()
     
-    private var precisionAlerts = [Mode: UIAlertController]()
-    
-    private var timeLimitAlert = UIAlertController(title: "Time Limit", message: nil, preferredStyle: .actionSheet)
-    
     // MARK: - UIViewController overrides
     
     override func viewDidLoad() {
@@ -106,63 +102,6 @@ class VCAppController: UIViewController, VCInputBarDelegate {
         modeSettings[.practice] = Settings(precision: .point01, zero: false, arrows: false, timeLimit: .sixty)
         modeSettings[.newGame] = Settings(precision: .random, zero: false, arrows: false, timeLimit: .sixty)
         configureVernierView()
-        
-        // Initialize precisionAlerts.
-        // Code is repeated since UIAlertActions cannot be used with multiple UIAlertControllers.
-        let practicePrecisionAlert = UIAlertController(title: "Precision", message: nil, preferredStyle: .actionSheet)
-        let practicePoint01Action = UIAlertAction(title: Precision.point01.rawValue, style: .default, handler: { _ in
-            self.modeSettings[.practice]!.precision = .point01
-            self.updateButtonTitles()
-            self.newObject()
-        })
-        let practicePoint05Action = UIAlertAction(title: Precision.point005.rawValue, style: .default, handler: { _ in
-            self.modeSettings[.practice]!.precision = .point005
-            self.updateButtonTitles()
-            self.newObject()
-        })
-        practicePrecisionAlert.addAction(practicePoint01Action)
-        practicePrecisionAlert.addAction(practicePoint05Action)
-        precisionAlerts[.practice] = practicePrecisionAlert
-        
-        let newGamePrecisionAlert = UIAlertController(title: "Precision", message: nil, preferredStyle: .actionSheet)
-        let newGamePoint01Action = UIAlertAction(title: Precision.point01.rawValue, style: .default, handler: { _ in
-            self.modeSettings[.newGame]!.precision = .point01
-            self.updateButtonTitles()
-            self.newObject()
-        })
-        let newGamePoint05Action = UIAlertAction(title: Precision.point005.rawValue, style: .default, handler: { _ in
-            self.modeSettings[.newGame]!.precision = .point005
-            self.updateButtonTitles()
-            self.newObject()
-        })
-        let newGameRandomAction = UIAlertAction(title: Precision.random.rawValue, style: .default, handler: { _ in
-            self.modeSettings[.newGame]!.precision = .random
-            self.updateButtonTitles()
-            self.newObject()
-        })
-        newGamePrecisionAlert.addAction(newGamePoint01Action)
-        newGamePrecisionAlert.addAction(newGamePoint05Action)
-        newGamePrecisionAlert.addAction(newGameRandomAction)
-        newGamePrecisionAlert.popoverPresentationController?.barButtonItem = precisionItem
-        precisionAlerts[.newGame] = newGamePrecisionAlert
-        
-        // Initialize timeLimitAlert.
-        let sixtyAction = UIAlertAction(title: TimeLimit.sixty.rawValue, style: .default, handler: { _ in
-            self.modeSettings[.newGame]!.timeLimit = .sixty
-            self.updateButtonTitles()
-        })
-        let thirtyAction = UIAlertAction(title: TimeLimit.thirty.rawValue, style: .default, handler: { _ in
-            self.modeSettings[.newGame]!.timeLimit = .thirty
-            self.updateButtonTitles()
-        })
-        let fifteenAction = UIAlertAction(title: TimeLimit.fifteen.rawValue, style: .default, handler: { _ in
-            self.modeSettings[.newGame]!.timeLimit = .fifteen
-            self.updateButtonTitles()
-        })
-        timeLimitAlert.addAction(sixtyAction)
-        timeLimitAlert.addAction(thirtyAction)
-        timeLimitAlert.addAction(fifteenAction)
-        timeLimitAlert.popoverPresentationController?.barButtonItem = timeLimitItem
         
         // Initialize notification handlers.
         NotificationCenter.default.addObserver(self, selector: #selector(keyboardWillShow(_:)), name: .UIKeyboardWillShow, object: nil)
@@ -186,8 +125,29 @@ class VCAppController: UIViewController, VCInputBarDelegate {
     }
     
     @IBAction func precisionPressed(_ sender: UIBarButtonItem) {
-        precisionAlerts[currentMode]!.popoverPresentationController?.barButtonItem = precisionItem
-        present(precisionAlerts[currentMode]!, animated: true, completion: nil)
+        let alert = UIAlertController(title: "Precision", message: nil, preferredStyle: .actionSheet)
+        let point01Action = UIAlertAction(title: Precision.point01.rawValue, style: .default, handler: { _ in
+            self.modeSettings[self.currentMode]!.precision = .point01
+            self.updateButtonTitles()
+            self.newObject()
+        })
+        let point05Action = UIAlertAction(title: Precision.point005.rawValue, style: .default, handler: { _ in
+            self.modeSettings[self.currentMode]!.precision = .point005
+            self.updateButtonTitles()
+            self.newObject()
+        })
+        alert.addAction(point01Action)
+        alert.addAction(point05Action)
+        if currentMode == .newGame {
+            let randomAction = UIAlertAction(title: Precision.random.rawValue, style: .default, handler: { _ in
+                self.modeSettings[.newGame]!.precision = .random
+                self.updateButtonTitles()
+                self.newObject()
+            })
+            alert.addAction(randomAction)
+        }
+        alert.popoverPresentationController?.barButtonItem = precisionItem
+        present(alert, animated: true, completion: nil)
     }
     
     @IBAction func zeroPressed(_ sender: UIBarButtonItem) {
@@ -203,8 +163,24 @@ class VCAppController: UIViewController, VCInputBarDelegate {
     }
     
     @IBAction func timeLimitPressed(_ sender: UIBarButtonItem) {
-        timeLimitAlert.popoverPresentationController?.barButtonItem = timeLimitItem
-        present(timeLimitAlert, animated: true, completion: nil)
+        let alert = UIAlertController(title: "Time Limit", message: nil, preferredStyle: .actionSheet)
+        let sixtyAction = UIAlertAction(title: TimeLimit.sixty.rawValue, style: .default, handler: { _ in
+            self.modeSettings[.newGame]!.timeLimit = .sixty
+            self.updateButtonTitles()
+        })
+        let thirtyAction = UIAlertAction(title: TimeLimit.thirty.rawValue, style: .default, handler: { _ in
+            self.modeSettings[.newGame]!.timeLimit = .thirty
+            self.updateButtonTitles()
+        })
+        let fifteenAction = UIAlertAction(title: TimeLimit.fifteen.rawValue, style: .default, handler: { _ in
+            self.modeSettings[.newGame]!.timeLimit = .fifteen
+            self.updateButtonTitles()
+        })
+        alert.addAction(sixtyAction)
+        alert.addAction(thirtyAction)
+        alert.addAction(fifteenAction)
+        alert.popoverPresentationController?.barButtonItem = timeLimitItem
+        present(alert, animated: true, completion: nil)
     }
     
     @IBAction func newPressed(_ sender: UIBarButtonItem) {

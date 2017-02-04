@@ -75,6 +75,17 @@ import UIKit
         didSet {
             reset(layer: objectLayer)
             redraw(layer: objectLayer)
+            
+            // Need setValue(_:, forKeyPath:) to work around CAEmitterCell and CAEmitterLayer bug.
+            // http://stackoverflow.com/questions/16749430/caemittercell-does-not-respect-birthrate-change
+            smokeLayer.setValue(100.0, forKeyPath: "emitterCells.smoke.birthRate")
+            let deadline = DispatchTime.now() + 0.5
+            smokeDeadline = deadline
+            DispatchQueue.main.asyncAfter(deadline: deadline, execute: {
+                if deadline == self.smokeDeadline {
+                    self.smokeLayer.setValue(0.0, forKeyPath: "emitterCells.smoke.birthRate")
+                }
+            })
         }
     }
     
@@ -115,6 +126,12 @@ import UIKit
     private var topArrowLayer = CALayer()
     
     private var bottomArrowLayer = CALayer()
+    
+    private var smokeLayer = CAEmitterLayer()
+    
+    private var smokeCell = CAEmitterCell()
+    
+    private var smokeDeadline = DispatchTime.distantFuture
     
     // MARK: - Initializers
     
@@ -248,6 +265,24 @@ import UIKit
         
         setup(layer: bottomArrowLayer, anchor: CGPoint(x: 0.5, y: 0.0))
         vernierScaleLayer.addSublayer(bottomArrowLayer)
+        
+        smokeCell.lifetime = 1.0
+        smokeCell.alphaSpeed = -1.0
+        smokeCell.spin = 5.0
+        smokeCell.contents = UIImage(named: "smoke")?.cgImage
+        // Need cell name to work around CAEmitterCell and CAEmitterLayer bug.
+        // http://stackoverflow.com/questions/16749430/caemittercell-does-not-respect-birthrate-change
+        smokeCell.name = "smoke"
+        setup(layer: smokeLayer, actions: [
+            "position": NSNull(),
+            "bounds": NSNull(),
+            "emitterSize": NSNull(),
+            "emitterPosition": NSNull()
+        ])
+        smokeLayer.emitterShape = kCAEmitterLayerRectangle
+        smokeLayer.emitterMode = kCAEmitterLayerOutline
+        smokeLayer.emitterCells = [smokeCell]
+        objectLayer.addSublayer(smokeLayer)
     }
     
     // MARK: - UIView overrides
@@ -345,11 +380,13 @@ import UIKit
         reset(layer: point005LinesLayer)
         reset(layer: topArrowLayer)
         reset(layer: bottomArrowLayer)
+        reset(layer: smokeLayer)
     }
     
-    private func setup(layer: CALayer, anchor: CGPoint = CGPoint.zero) {
+    private func setup(layer: CALayer, anchor: CGPoint = CGPoint.zero,
+                       actions: [String: CAAction] = ["position": NSNull()]) {
         // Disable implicit animation when position is changed.
-        layer.actions = ["position": NSNull()]
+        layer.actions = actions
         layer.anchorPoint = anchor
         reset(layer: layer)
     }
@@ -422,6 +459,10 @@ import UIKit
             let objectSize = CGSize(width: CGFloat(answer), height: 40.0)
             scaleDraw(layer: layer, path: UIBezierPath(rect: CGRect(origin: CGPoint.zero, size: objectSize)),
                       size: objectSize, fill: UIColor.red, stroke: UIColor.black, clip: false)
+            // Also size smokeLayer to fit objectLayer.
+            smokeLayer.bounds.size = layer.bounds.size
+            smokeLayer.emitterSize = layer.bounds.size
+            smokeLayer.emitterPosition = CGPoint(x: layer.bounds.midX, y: layer.bounds.midY)
         case vernierScaleLayer:
             scaleDraw(layer: layer, path: vernierScales[precision]!, size: CGSize(width: vWidth, height: 130.0),
                       fill: UIColor.blue, stroke: UIColor.black)
