@@ -12,6 +12,7 @@
 		B520935F1E463E6800618C60 /* buzzer.mp3 in Resources */ = {isa = PBXBuildFile; fileRef = B520935A1E463E6800618C60 /* buzzer.mp3 */; };
 		B52093601E463E6800618C60 /* alarm.mp3 in Resources */ = {isa = PBXBuildFile; fileRef = B520935B1E463E6800618C60 /* alarm.mp3 */; };
 		B52093641E463F3F00618C60 /* tick.mp3 in Resources */ = {isa = PBXBuildFile; fileRef = B52093631E463F3F00618C60 /* tick.mp3 */; };
+		B52093671E46E04100618C60 /* GameKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = B52093661E46E04100618C60 /* GameKit.framework */; };
 		B5978FD01E3E39F400BEAFDF /* VCBackgroundView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B5978FCF1E3E39F400BEAFDF /* VCBackgroundView.swift */; };
 		B5978FD21E3E467E00BEAFDF /* VCAppController.swift in Sources */ = {isa = PBXBuildFile; fileRef = B5978FD11E3E467E00BEAFDF /* VCAppController.swift */; };
 		B5978FD41E3EE74A00BEAFDF /* VCVernierView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B5978FD31E3EE74A00BEAFDF /* VCVernierView.swift */; };
@@ -50,6 +51,7 @@
 		B520935A1E463E6800618C60 /* buzzer.mp3 */ = {isa = PBXFileReference; lastKnownFileType = audio.mp3; path = buzzer.mp3; sourceTree = "<group>"; };
 		B520935B1E463E6800618C60 /* alarm.mp3 */ = {isa = PBXFileReference; lastKnownFileType = audio.mp3; path = alarm.mp3; sourceTree = "<group>"; };
 		B52093631E463F3F00618C60 /* tick.mp3 */ = {isa = PBXFileReference; lastKnownFileType = audio.mp3; path = tick.mp3; sourceTree = "<group>"; };
+		B52093661E46E04100618C60 /* GameKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = GameKit.framework; path = System/Library/Frameworks/GameKit.framework; sourceTree = SDKROOT; };
 		B5978FCF1E3E39F400BEAFDF /* VCBackgroundView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = VCBackgroundView.swift; sourceTree = "<group>"; };
 		B5978FD11E3E467E00BEAFDF /* VCAppController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = VCAppController.swift; sourceTree = "<group>"; };
 		B5978FD31E3EE74A00BEAFDF /* VCVernierView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = VCVernierView.swift; sourceTree = "<group>"; };
@@ -76,6 +78,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				B52093671E46E04100618C60 /* GameKit.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -96,6 +99,14 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
+		B52093651E46E04100618C60 /* Frameworks */ = {
+			isa = PBXGroup;
+			children = (
+				B52093661E46E04100618C60 /* GameKit.framework */,
+			);
+			name = Frameworks;
+			sourceTree = "<group>";
+		};
 		B5F7106C1E3CC35B007B44B6 = {
 			isa = PBXGroup;
 			children = (
@@ -103,6 +114,7 @@
 				B5F7108C1E3CC35C007B44B6 /* VernierCaliper2Tests */,
 				B5F710971E3CC35C007B44B6 /* VernierCaliper2UITests */,
 				B5F710761E3CC35B007B44B6 /* Products */,
+				B52093651E46E04100618C60 /* Frameworks */,
 			);
 			sourceTree = "<group>";
 		};
@@ -228,6 +240,11 @@
 						CreatedOnToolsVersion = 8.2.1;
 						DevelopmentTeam = UGL258VAKZ;
 						ProvisioningStyle = Automatic;
+						SystemCapabilities = {
+							com.apple.GameCenter = {
+								enabled = 1;
+							};
+						};
 					};
 					B5F710881E3CC35C007B44B6 = {
 						CreatedOnToolsVersion = 8.2.1;

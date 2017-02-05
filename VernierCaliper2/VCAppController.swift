@@ -7,9 +7,10 @@
 //
 
 import UIKit
+import GameKit
 import AudioToolbox
 
-class VCAppController: UIViewController, VCInputBarDelegate {
+class VCAppController: UIViewController, GKGameCenterControllerDelegate, VCInputBarDelegate {
     
     // MARK: - Type definitions
     
@@ -124,6 +125,10 @@ class VCAppController: UIViewController, VCInputBarDelegate {
     
     private var tickSound = UnsafeMutablePointer<SystemSoundID>.allocate(capacity: 1)
     
+    private var gameCenterAuth: UIViewController?
+    
+    private var authHandler: (() -> Void)?
+    
     // MARK: - Deinitializers
     
     deinit {
@@ -143,6 +148,14 @@ class VCAppController: UIViewController, VCInputBarDelegate {
     
     override func viewDidLoad() {
         super.viewDidLoad()
+        
+        // Initialize Game Center.
+        GKLocalPlayer.localPlayer().authenticateHandler = { (viewController: UIViewController?, error: Error?) in
+            self.gameCenterAuth = viewController
+            if viewController == nil, let handler = self.authHandler {
+                handler()
+            }
+        }
         
         // Set VCInputBar delegate.
         inputBar.delegate = self
@@ -277,6 +290,10 @@ class VCAppController: UIViewController, VCInputBarDelegate {
         message += label(forZero: settings.zero) + "\n"
         message += label(forTimeLimit: settings.timeLimit) + "\n"
         
+        if gameCenterAuth == nil && !GKLocalPlayer.localPlayer().isAuthenticated {
+            message += "\nWARNING: You are not signed into Game Center and your scores cannot be submitted to the leaderboards. To sign in, go to Settings > Game Center from your Home screen.\n"
+        }
+        
         let alert = UIAlertController(title: "Start Game", message: message + "\nAre you ready to start?", preferredStyle: .alert)
         let yesAction = UIAlertAction(title: "Start", style: .default, handler: { _ in
             self.currentMode = .game
@@ -301,7 +318,27 @@ class VCAppController: UIViewController, VCInputBarDelegate {
     }
     
     @IBAction func showLeaderboards(_ sender: Any) {
-        // TODO: Show Game Center Interface
+        let handler = {
+            if GKLocalPlayer.localPlayer().isAuthenticated {
+                let controller = GKGameCenterViewController()
+                controller.gameCenterDelegate = self
+                controller.viewState = .leaderboards
+                controller.leaderboardIdentifier = self.generateLeaderboardIdentifier()
+                self.present(controller, animated: true, completion: nil)
+            } else {
+                let alert = UIAlertController(title: "Leaderboards", message: "Viewing leaderboards requires you to be signed into Game Center.\n\nYou may do by going to Settings > Game Center from your Home screen.", preferredStyle: .alert)
+                let yesAction = UIAlertAction(title: "OK", style: .default, handler: nil)
+                alert.addAction(yesAction)
+                self.present(alert, animated: true, completion: nil)
+            }
+            self.authHandler = nil
+        }
+        self.authHandler = handler
+        if !GKLocalPlayer.localPlayer().isAuthenticated, let authController = self.gameCenterAuth {
+            self.present(authController, animated: true, completion: nil)
+        } else {
+            handler()
+        }
     }
     
     @IBAction func dismissKeyboard(_ sender: Any) {
@@ -444,13 +481,32 @@ class VCAppController: UIViewController, VCInputBarDelegate {
             if settings.sounds {
                 AudioServicesPlaySystemSound(dingSound.pointee)
             }
+            let reportedScore = gameState.score
             let alert = UIAlertController(title: "Time's Up", message: "Your final score is " + String(gameState.score) + "!", preferredStyle: .alert)
             let yesAction = UIAlertAction(title: "Submit", style: .default, handler: { _ in
-                // TODO: Submit to Game Center
+                let handler = {
+                    if GKLocalPlayer.localPlayer().isAuthenticated {
+                        let score = GKScore(leaderboardIdentifier: self.generateLeaderboardIdentifier())
+                        score.value = Int64(reportedScore)
+                        GKScore.report([score], withCompletionHandler: nil)
+                    } else {
+                        let alert = UIAlertController(title: "Submit", message: "Your score cannot be submitted as you are not signed into Game Center.\n\nYou may do by going to Settings > Game Center from your Home screen before starting the game.", preferredStyle: .alert)
+                        let yesAction = UIAlertAction(title: "OK", style: .default, handler: nil)
+                        alert.addAction(yesAction)
+                        self.present(alert, animated: true, completion: nil)
+                    }
+                    self.authHandler = nil
+                }
+                self.authHandler = handler
+                if !GKLocalPlayer.localPlayer().isAuthenticated, let authController = self.gameCenterAuth {
+                    self.present(authController, animated: true, completion: nil)
+                } else {
+                    handler()
+                }
+                
                 self.currentMode = .newGame
                 self.configureVernierView()
                 self.updateUIState()
-                
             })
             let noAction = UIAlertAction(title: "Cancel", style: .cancel, handler: { _ in
                 self.currentMode = .newGame
@@ -466,6 +522,30 @@ class VCAppController: UIViewController, VCInputBarDelegate {
         }
     }
     
+    func generateLeaderboardIdentifier() -> String {
+        var result = "org.friendsonly.VernierCaliper2"
+        switch settings.timeLimit {
+        case .sixty:
+            result += ".sixty"
+        case .thirty:
+            result += ".thirty"
+        case .fifteen:
+            result += ".fifteen"
+        }
+        switch settings.precision {
+        case .point01:
+            result += ".point01"
+        case .point005:
+            result += ".point005"
+        case .random:
+            result += ".random"
+        }
+        if settings.zero {
+            result += ".zero"
+        }
+        return result
+    }
+    
     // MARK: - Notification handlers
     
     func keyboardWillShow(_ aNotification: Notification) {
@@ -479,6 +559,12 @@ class VCAppController: UIViewController, VCInputBarDelegate {
             self.vernierView.frame.origin.y = self.inputBar.frame.maxY
         })
         updateUIState()
+    }
+    
+    // MARK: - GKGameCenterControllerDelegate
+    
+    func gameCenterViewControllerDidFinish(_ gameCenterViewController: GKGameCenterViewController) {
+        dismiss(animated: true, completion: nil)
     }
     
     // MARK: - VCInputBarDelegate
