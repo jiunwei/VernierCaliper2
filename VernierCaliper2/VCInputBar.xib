@@ -26,7 +26,7 @@
                 <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                 <subviews>
                     <textField opaque="NO" clipsSubviews="YES" contentMode="scaleToFill" contentHorizontalAlignment="left" contentVerticalAlignment="center" borderStyle="roundedRect" textAlignment="natural" clearsOnBeginEditing="YES" minimumFontSize="17" clearButtonMode="always" translatesAutoresizingMaskIntoConstraints="NO" id="Ptr-z7-bvb">
-                        <rect key="frame" x="8" y="7" width="275" height="30"/>
+                        <rect key="frame" x="8" y="7" width="220" height="30"/>
                         <nil key="textColor"/>
                         <fontDescription key="fontDescription" type="system" pointSize="14"/>
                         <textInputTraits key="textInputTraits" keyboardType="decimalPad"/>
@@ -35,17 +35,17 @@
                         </connections>
                     </textField>
                     <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="cm" textAlignment="natural" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="eXd-dC-vcc">
-                        <rect key="frame" x="291" y="12" width="24" height="21"/>
+                        <rect key="frame" x="236" y="12" width="24" height="21"/>
                         <fontDescription key="fontDescription" type="system" pointSize="17"/>
                         <color key="textColor" cocoaTouchSystemColor="lightTextColor"/>
                         <nil key="highlightedColor"/>
                     </label>
                     <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="roundedRect" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="KyC-q6-gZX">
-                        <rect key="frame" x="323" y="7" width="44" height="30"/>
+                        <rect key="frame" x="268" y="7" width="99" height="30"/>
                         <constraints>
-                            <constraint firstAttribute="width" constant="44" id="b4B-DC-O2F"/>
+                            <constraint firstAttribute="width" constant="99" id="b4B-DC-O2F"/>
                         </constraints>
-                        <state key="normal" title="Check">
+                        <state key="normal" title="Check Answer">
                             <color key="titleColor" red="0.98431372549019602" green="0.7803921568627451" blue="0.16862745098039217" alpha="1" colorSpace="calibratedRGB"/>
                         </state>
                         <connections>

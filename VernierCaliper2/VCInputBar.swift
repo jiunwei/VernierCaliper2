@@ -27,7 +27,9 @@ protocol VCInputBarDelegate: class {
     weak var delegate: VCInputBarDelegate? = nil
     
     var doubleValue: Double? {
-        return Double(textField.text!)
+        let formatter = NumberFormatter()
+        formatter.locale = Locale.current
+        return formatter.number(from: textField.text!)?.doubleValue
     }
     
     // MARK: - Initializers

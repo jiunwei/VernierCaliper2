@@ -176,6 +176,11 @@
                         <barButtonItem enabled="NO" title="Time Left: 60 s" id="0hG-vC-TL3">
                             <color key="tintColor" cocoaTouchSystemColor="darkTextColor"/>
                         </barButtonItem>
+                        <barButtonItem title="Sounds: On" id="Sjd-PX-TUY">
+                            <connections>
+                                <action selector="soundsPressed:" destination="kpO-Lh-Ild" id="3TP-z0-DfZ"/>
+                            </connections>
+                        </barButtonItem>
                         <barButtonItem style="plain" systemItem="flexibleSpace" id="WxV-Fq-QmR"/>
                         <barButtonItem title="New" id="8sQ-ca-sEM">
                             <connections>
@@ -211,6 +216,7 @@
                         <outlet property="precisionItem" destination="oUA-gx-9qY" id="sv2-7i-ggj"/>
                         <outlet property="quitItem" destination="hvb-e2-jB9" id="y4z-lC-y8Q"/>
                         <outlet property="scoreItem" destination="xYz-z1-CTq" id="gyA-Z4-s30"/>
+                        <outlet property="soundsItem" destination="Sjd-PX-TUY" id="g3r-tx-7NV"/>
                         <outlet property="spaceItem" destination="WxV-Fq-QmR" id="7RN-GT-yGe"/>
                         <outlet property="timeLeftItem" destination="0hG-vC-TL3" id="bta-og-6NW"/>
                         <outlet property="timeLimitItem" destination="6mk-XE-yvp" id="tDE-Vl-hbk"/>

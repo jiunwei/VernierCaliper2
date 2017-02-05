@@ -7,6 +7,11 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		B520935D1E463E6800618C60 /* harp.mp3 in Resources */ = {isa = PBXBuildFile; fileRef = B52093581E463E6800618C60 /* harp.mp3 */; };
+		B520935E1E463E6800618C60 /* ding.mp3 in Resources */ = {isa = PBXBuildFile; fileRef = B52093591E463E6800618C60 /* ding.mp3 */; };
+		B520935F1E463E6800618C60 /* buzzer.mp3 in Resources */ = {isa = PBXBuildFile; fileRef = B520935A1E463E6800618C60 /* buzzer.mp3 */; };
+		B52093601E463E6800618C60 /* alarm.mp3 in Resources */ = {isa = PBXBuildFile; fileRef = B520935B1E463E6800618C60 /* alarm.mp3 */; };
+		B52093641E463F3F00618C60 /* tick.mp3 in Resources */ = {isa = PBXBuildFile; fileRef = B52093631E463F3F00618C60 /* tick.mp3 */; };
 		B5978FD01E3E39F400BEAFDF /* VCBackgroundView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B5978FCF1E3E39F400BEAFDF /* VCBackgroundView.swift */; };
 		B5978FD21E3E467E00BEAFDF /* VCAppController.swift in Sources */ = {isa = PBXBuildFile; fileRef = B5978FD11E3E467E00BEAFDF /* VCAppController.swift */; };
 		B5978FD41E3EE74A00BEAFDF /* VCVernierView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B5978FD31E3EE74A00BEAFDF /* VCVernierView.swift */; };
@@ -40,6 +45,11 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
+		B52093581E463E6800618C60 /* harp.mp3 */ = {isa = PBXFileReference; lastKnownFileType = audio.mp3; path = harp.mp3; sourceTree = "<group>"; };
+		B52093591E463E6800618C60 /* ding.mp3 */ = {isa = PBXFileReference; lastKnownFileType = audio.mp3; path = ding.mp3; sourceTree = "<group>"; };
+		B520935A1E463E6800618C60 /* buzzer.mp3 */ = {isa = PBXFileReference; lastKnownFileType = audio.mp3; path = buzzer.mp3; sourceTree = "<group>"; };
+		B520935B1E463E6800618C60 /* alarm.mp3 */ = {isa = PBXFileReference; lastKnownFileType = audio.mp3; path = alarm.mp3; sourceTree = "<group>"; };
+		B52093631E463F3F00618C60 /* tick.mp3 */ = {isa = PBXFileReference; lastKnownFileType = audio.mp3; path = tick.mp3; sourceTree = "<group>"; };
 		B5978FCF1E3E39F400BEAFDF /* VCBackgroundView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = VCBackgroundView.swift; sourceTree = "<group>"; };
 		B5978FD11E3E467E00BEAFDF /* VCAppController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = VCAppController.swift; sourceTree = "<group>"; };
 		B5978FD31E3EE74A00BEAFDF /* VCVernierView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = VCVernierView.swift; sourceTree = "<group>"; };
@@ -109,18 +119,23 @@
 		B5F710771E3CC35B007B44B6 /* VernierCaliper2 */ = {
 			isa = PBXGroup;
 			children = (
+				B520935B1E463E6800618C60 /* alarm.mp3 */,
 				B5F710781E3CC35B007B44B6 /* AppDelegate.swift */,
+				B5F7107F1E3CC35B007B44B6 /* Assets.xcassets */,
+				B520935A1E463E6800618C60 /* buzzer.mp3 */,
+				B52093591E463E6800618C60 /* ding.mp3 */,
+				B52093581E463E6800618C60 /* harp.mp3 */,
+				B5F710841E3CC35B007B44B6 /* Info.plist */,
+				B5F710811E3CC35B007B44B6 /* LaunchScreen.storyboard */,
+				B5F7107C1E3CC35B007B44B6 /* Main.storyboard */,
+				B5DD913C1E43684A00620010 /* smoke.png */,
+				B52093631E463F3F00618C60 /* tick.mp3 */,
+				B5978FD11E3E467E00BEAFDF /* VCAppController.swift */,
+				B5978FCF1E3E39F400BEAFDF /* VCBackgroundView.swift */,
+				B5F710AA1E3DED12007B44B6 /* VCInputBar.swift */,
+				B5F710A81E3DECC5007B44B6 /* VCInputBar.xib */,
 				B5978FD31E3EE74A00BEAFDF /* VCVernierView.swift */,
 				B5F7107A1E3CC35B007B44B6 /* ViewController.swift */,
-				B5978FD11E3E467E00BEAFDF /* VCAppController.swift */,
-				B5F7107C1E3CC35B007B44B6 /* Main.storyboard */,
-				B5978FCF1E3E39F400BEAFDF /* VCBackgroundView.swift */,
-				B5F710A81E3DECC5007B44B6 /* VCInputBar.xib */,
-				B5F710AA1E3DED12007B44B6 /* VCInputBar.swift */,
-				B5DD913C1E43684A00620010 /* smoke.png */,
-				B5F7107F1E3CC35B007B44B6 /* Assets.xcassets */,
-				B5F710811E3CC35B007B44B6 /* LaunchScreen.storyboard */,
-				B5F710841E3CC35B007B44B6 /* Info.plist */,
 			);
 			path = VernierCaliper2;
 			sourceTree = "<group>";
@@ -253,8 +268,13 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				B520935E1E463E6800618C60 /* ding.mp3 in Resources */,
+				B52093641E463F3F00618C60 /* tick.mp3 in Resources */,
 				B5F710831E3CC35B007B44B6 /* LaunchScreen.storyboard in Resources */,
+				B520935F1E463E6800618C60 /* buzzer.mp3 in Resources */,
 				B5F710A91E3DECC5007B44B6 /* VCInputBar.xib in Resources */,
+				B52093601E463E6800618C60 /* alarm.mp3 in Resources */,
+				B520935D1E463E6800618C60 /* harp.mp3 in Resources */,
 				B5DD913D1E43684A00620010 /* smoke.png in Resources */,
 				B5F710801E3CC35B007B44B6 /* Assets.xcassets in Resources */,
 				B5F7107E1E3CC35B007B44B6 /* Main.storyboard in Resources */,

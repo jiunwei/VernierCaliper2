@@ -7,6 +7,7 @@
 //
 
 import UIKit
+import AudioToolbox
 
 class VCAppController: UIViewController, VCInputBarDelegate {
     
@@ -30,11 +31,37 @@ class VCAppController: UIViewController, VCInputBarDelegate {
         case fifteen = "15 s"
     }
     
-    struct Settings {
+    class Settings: NSObject, NSCoding {
         var precision = Precision.point01
         var zero = false
-        var arrows = false
+        var arrows = true
         var timeLimit = TimeLimit.sixty
+        var sounds = true
+        
+        override init() {
+            super.init()
+        }
+        
+        required init?(coder aDecoder: NSCoder) {
+            guard let precision = aDecoder.decodeObject(forKey: "precision") as? String, let timeLimit = aDecoder.decodeObject(forKey: "timeLimit") as? String else {
+                return nil
+            }
+            
+            self.precision = Precision(rawValue: precision)!
+            self.timeLimit = TimeLimit(rawValue: timeLimit)!
+            
+            zero = aDecoder.decodeBool(forKey: "zero")
+            arrows = aDecoder.decodeBool(forKey: "arrows")
+            sounds = aDecoder.decodeBool(forKey: "sounds")
+        }
+        
+        func encode(with: NSCoder) {
+            with.encode(precision.rawValue, forKey: "precision")
+            with.encode(zero, forKey: "zero")
+            with.encode(arrows, forKey: "arrows")
+            with.encode(timeLimit.rawValue, forKey: "timeLimit")
+            with.encode(sounds, forKey: "sounds")
+        }
     }
     
     struct GameState {
@@ -46,6 +73,8 @@ class VCAppController: UIViewController, VCInputBarDelegate {
     // MARK: - Constants
     
     static let barHeight: CGFloat = 44
+    
+    let settingsURL = FileManager().urls(for: .documentDirectory, in: .userDomainMask).first!.appendingPathComponent("settings")
     
     // MARK: - Properties
     
@@ -69,6 +98,8 @@ class VCAppController: UIViewController, VCInputBarDelegate {
 
     @IBOutlet var timeLeftItem: UIBarButtonItem!
     
+    @IBOutlet var soundsItem: UIBarButtonItem!
+    
     @IBOutlet var spaceItem: UIBarButtonItem!
     
     @IBOutlet var newItem: UIBarButtonItem!
@@ -81,7 +112,32 @@ class VCAppController: UIViewController, VCInputBarDelegate {
     
     private var modeItems = [Mode: [UIBarButtonItem]]()
     
-    private var modeSettings = [Mode: Settings]()
+    private var settings = Settings()
+    
+    private var harpSound = UnsafeMutablePointer<SystemSoundID>.allocate(capacity: 1)
+    
+    private var dingSound = UnsafeMutablePointer<SystemSoundID>.allocate(capacity: 1)
+    
+    private var buzzerSound = UnsafeMutablePointer<SystemSoundID>.allocate(capacity: 1)
+    
+    private var alarmSound = UnsafeMutablePointer<SystemSoundID>.allocate(capacity: 1)
+    
+    private var tickSound = UnsafeMutablePointer<SystemSoundID>.allocate(capacity: 1)
+    
+    // MARK: - Deinitializers
+    
+    deinit {
+        deinitSound(sound: harpSound)
+        deinitSound(sound: dingSound)
+        deinitSound(sound: buzzerSound)
+        deinitSound(sound: alarmSound)
+        deinitSound(sound: tickSound)
+    }
+    
+    func deinitSound(sound: UnsafeMutablePointer<SystemSoundID>) {
+        AudioServicesDisposeSystemSoundID(sound.pointee)
+        sound.deallocate(capacity: 1)
+    }
     
     // MARK: - UIViewController overrides
     
@@ -92,15 +148,21 @@ class VCAppController: UIViewController, VCInputBarDelegate {
         inputBar.delegate = self
         
         // Initialize modeItems.
-        modeItems[.practice] = [precisionItem, zeroItem, arrowsItem, spaceItem, newItem]
-        modeItems[.newGame] = [precisionItem, zeroItem, timeLimitItem]
-        modeItems[.game] = [scoreItem, timeLeftItem, spaceItem, quitItem]
+        modeItems[.practice] = [precisionItem, zeroItem, arrowsItem, soundsItem, spaceItem, newItem]
+        modeItems[.newGame] = [precisionItem, zeroItem, timeLimitItem, soundsItem]
+        modeItems[.game] = [soundsItem, scoreItem, timeLeftItem, spaceItem, quitItem]
         
-        // Initialize modeSettings.
-        // TODO: load from persistent store
-        // TODO: configure vernier view to actually follow settings
-        modeSettings[.practice] = Settings(precision: .point01, zero: false, arrows: false, timeLimit: .sixty)
-        modeSettings[.newGame] = Settings(precision: .random, zero: false, arrows: false, timeLimit: .sixty)
+        // Load sounds.
+        loadSound(name: "harp", sound: harpSound)
+        loadSound(name: "ding", sound: dingSound)
+        loadSound(name: "buzzer", sound: buzzerSound)
+        loadSound(name: "alarm", sound: alarmSound)
+        loadSound(name: "tick", sound: tickSound)
+        
+        // Load settings.
+        if let loadedSettings = NSKeyedUnarchiver.unarchiveObject(withFile: settingsURL.path) as? Settings {
+            settings = loadedSettings
+        }
         configureVernierView()
         
         // Initialize notification handlers.
@@ -117,63 +179,65 @@ class VCAppController: UIViewController, VCInputBarDelegate {
     @IBAction func modeChanged(_ sender: UISegmentedControl) {
         // Determine new mode and configure vernier view.
         currentMode = sender.selectedSegmentIndex == 0 ? .practice : .newGame
-        configureVernierView()
         
-        // Update views.
+        // Update UI state.
         updateUIState()
-        updateButtonTitles()
     }
     
     @IBAction func precisionPressed(_ sender: UIBarButtonItem) {
         let alert = UIAlertController(title: "Precision", message: nil, preferredStyle: .actionSheet)
         let point01Action = UIAlertAction(title: Precision.point01.rawValue, style: .default, handler: { _ in
-            self.modeSettings[self.currentMode]!.precision = .point01
-            self.updateButtonTitles()
-            self.newObject()
+            if self.settings.precision != .point01 {
+                self.settings.precision = .point01
+                self.updateButtonTitles()
+                self.newObject()
+            }
         })
         let point05Action = UIAlertAction(title: Precision.point005.rawValue, style: .default, handler: { _ in
-            self.modeSettings[self.currentMode]!.precision = .point005
-            self.updateButtonTitles()
-            self.newObject()
+            if self.settings.precision != .point005 {
+                self.settings.precision = .point005
+                self.updateButtonTitles()
+                self.newObject()
+            }
+        })
+        let randomAction = UIAlertAction(title: Precision.random.rawValue, style: .default, handler: { _ in
+            if self.settings.precision != .random {
+                self.settings.precision = .random
+                self.updateButtonTitles()
+                self.newObject()
+            }
         })
         alert.addAction(point01Action)
         alert.addAction(point05Action)
-        if currentMode == .newGame {
-            let randomAction = UIAlertAction(title: Precision.random.rawValue, style: .default, handler: { _ in
-                self.modeSettings[.newGame]!.precision = .random
-                self.updateButtonTitles()
-                self.newObject()
-            })
-            alert.addAction(randomAction)
-        }
+        alert.addAction(randomAction)
         alert.popoverPresentationController?.barButtonItem = precisionItem
         present(alert, animated: true, completion: nil)
     }
     
     @IBAction func zeroPressed(_ sender: UIBarButtonItem) {
-        modeSettings[currentMode]!.zero = !modeSettings[currentMode]!.zero
+        settings.zero = !settings.zero
         updateButtonTitles()
         newZero()
     }
     
     @IBAction func arrowsPressed(_ sender: UIBarButtonItem) {
-        modeSettings[currentMode]!.arrows = !modeSettings[currentMode]!.arrows
+        settings.arrows = !settings.arrows
         updateButtonTitles()
-        vernierView.arrows = modeSettings[currentMode]!.arrows
+        vernierView.arrows = settings.arrows
     }
     
     @IBAction func timeLimitPressed(_ sender: UIBarButtonItem) {
         let alert = UIAlertController(title: "Time Limit", message: nil, preferredStyle: .actionSheet)
         let sixtyAction = UIAlertAction(title: TimeLimit.sixty.rawValue, style: .default, handler: { _ in
-            self.modeSettings[.newGame]!.timeLimit = .sixty
+            self.settings.timeLimit = .sixty
             self.updateButtonTitles()
         })
         let thirtyAction = UIAlertAction(title: TimeLimit.thirty.rawValue, style: .default, handler: { _ in
-            self.modeSettings[.newGame]!.timeLimit = .thirty
+            self.settings.timeLimit = .thirty
             self.updateButtonTitles()
         })
         let fifteenAction = UIAlertAction(title: TimeLimit.fifteen.rawValue, style: .default, handler: { _ in
-            self.modeSettings[.newGame]!.timeLimit = .fifteen
+            self.settings.timeLimit = .fifteen
             self.updateButtonTitles()
         })
         alert.addAction(sixtyAction)
@@ -181,6 +245,11 @@ class VCAppController: UIViewController, VCInputBarDelegate {
         alert.addAction(fifteenAction)
         alert.popoverPresentationController?.barButtonItem = timeLimitItem
         present(alert, animated: true, completion: nil)
+    }
+    
+    @IBAction func soundsPressed(_ sender: UIBarButtonItem) {
+        settings.sounds = !settings.sounds
+        updateButtonTitles()
     }
     
     @IBAction func newPressed(_ sender: UIBarButtonItem) {
@@ -192,6 +261,7 @@ class VCAppController: UIViewController, VCInputBarDelegate {
         let yesAction = UIAlertAction(title: "Quit", style: .default, handler: { _ in
             self.gameState.timer?.invalidate()
             self.currentMode = .newGame
+            self.configureVernierView()
             self.updateUIState()
         })
         let noAction = UIAlertAction(title: "Cancel", style: .cancel, handler: nil)
@@ -201,18 +271,19 @@ class VCAppController: UIViewController, VCInputBarDelegate {
     }
     
     @IBAction func startGame(_ sender: Any) {
-        let gameSettings = modeSettings[.newGame]!
         var message = ""
         
-        message += label(forPrecision: gameSettings.precision) + "\n"
-        message += label(forZero: gameSettings.zero) + "\n"
-        message += label(forTimeLimit: gameSettings.timeLimit) + "\n"
+        message += label(forPrecision: settings.precision) + "\n"
+        message += label(forZero: settings.zero) + "\n"
+        message += label(forTimeLimit: settings.timeLimit) + "\n"
         
         let alert = UIAlertController(title: "Start Game", message: message + "\nAre you ready to start?", preferredStyle: .alert)
         let yesAction = UIAlertAction(title: "Start", style: .default, handler: { _ in
             self.currentMode = .game
-            self.gameState.score = 0
-            switch self.modeSettings[.newGame]!.timeLimit {
+            self.configureVernierView()
+            self.updateUIState()
+            
+            switch self.settings.timeLimit {
             case .sixty:
                 self.gameState.timeLeft = 60
             case .thirty:
@@ -220,9 +291,7 @@ class VCAppController: UIViewController, VCInputBarDelegate {
             case .fifteen:
                 self.gameState.timeLeft = 15
             }
-            self.newObject()
-            self.updateUIState()
-            self.updateGameTitles()
+            self.gameState.score = 0
             self.gameState.timer = Timer.scheduledTimer(timeInterval: 1.0, target: self, selector: #selector(self.timerFired(_:)), userInfo: nil, repeats: true)
         })
         let noAction = UIAlertAction(title: "Cancel", style: .cancel, handler: nil)
@@ -266,6 +335,15 @@ class VCAppController: UIViewController, VCInputBarDelegate {
         return "Time Left: " + String(gameState.timeLeft) + " s"
     }
     
+    private func label(forSounds sounds: Bool) -> String {
+        return "Sounds: " + (sounds ? "On" : "Off")
+    }
+    
+    func loadSound(name: String, sound: UnsafeMutablePointer<SystemSoundID>) {
+        let url = Bundle.main.url(forResource: name, withExtension: "mp3")!
+        AudioServicesCreateSystemSoundID(url as CFURL, sound)
+    }
+    
     private func updateUIState() {
         newGameView.isHidden = currentMode != .newGame
         
@@ -276,12 +354,13 @@ class VCAppController: UIViewController, VCInputBarDelegate {
     }
     
     private func updateButtonTitles() {
-        let settings = currentSettings()
-        
         precisionItem.title = label(forPrecision: settings.precision)
         zeroItem.title = label(forZero: settings.zero)
         arrowsItem.title = label(forArrows: settings.arrows)
         timeLimitItem.title = label(forTimeLimit: settings.timeLimit)
+        soundsItem.title = label(forSounds: settings.sounds)
+        
+        NSKeyedArchiver.archiveRootObject(settings, toFile: settingsURL.path)
     }
     
     private func updateGameTitles() {
@@ -289,13 +368,7 @@ class VCAppController: UIViewController, VCInputBarDelegate {
         timeLeftItem.title = labelForTimeLeft()
     }
     
-    private func currentSettings() -> Settings {
-        return modeSettings[currentMode == .game ? .newGame : currentMode]!
-    }
-    
     private func newObject() {
-        let settings = currentSettings()
-        
         func point01Object() {
             vernierView.precision = .point01
             vernierView.answer = Double(arc4random() % 250) + 30.0
@@ -321,11 +394,14 @@ class VCAppController: UIViewController, VCInputBarDelegate {
         
         newZero()
         inputBar.clear()
+        
+        // Only play harp sound if object is visible.
+        if settings.sounds && currentMode != .newGame {
+            AudioServicesPlaySystemSound(harpSound.pointee)
+        }
     }
     
     private func newZero() {
-        let settings = currentSettings()
-        
         switch vernierView.precision {
         case .point01:
             vernierView.zero = settings.zero ? Double(arc4random() % 11) - 5.0 : 0.0
@@ -335,8 +411,8 @@ class VCAppController: UIViewController, VCInputBarDelegate {
     }
     
     private func configureVernierView() {
-        let settings = currentSettings()
-        vernierView.arrows = settings.arrows
+        // Always hide arrows for game mode.
+        vernierView.arrows = currentMode == .game ? false : settings.arrows
         // Precision and zero are configured by calling newObject() since size of object must always match the precision used.
         newObject()
     }
@@ -345,6 +421,9 @@ class VCAppController: UIViewController, VCInputBarDelegate {
         gameState.timeLeft -= 1
         updateGameTitles()
         if gameState.timeLeft <= 5 && gameState.timeLeft > 0 {
+            if settings.sounds {
+                AudioServicesPlaySystemSound(alarmSound.pointee)
+            }
             UIView.animateKeyframes(withDuration: 0.5, delay: 0, animations: {
                 UIView.addKeyframe(withRelativeStartTime: 0.0, relativeDuration: 0.25, animations: {
                     self.alertView.alpha = 1
@@ -354,18 +433,28 @@ class VCAppController: UIViewController, VCInputBarDelegate {
                 })
             }, completion: nil)
         }
+        if gameState.timeLeft > 0 {
+            if settings.sounds {
+                AudioServicesPlaySystemSound(tickSound.pointee)
+            }
+        }
         if gameState.timeLeft == 0 {
             gameState.timer?.invalidate()
             inputBar.dismiss()
+            if settings.sounds {
+                AudioServicesPlaySystemSound(dingSound.pointee)
+            }
             let alert = UIAlertController(title: "Time's Up", message: "Your final score is " + String(gameState.score) + "!", preferredStyle: .alert)
             let yesAction = UIAlertAction(title: "Submit", style: .default, handler: { _ in
                 // TODO: Submit to Game Center
                 self.currentMode = .newGame
+                self.configureVernierView()
                 self.updateUIState()
                 
             })
             let noAction = UIAlertAction(title: "Cancel", style: .cancel, handler: { _ in
                 self.currentMode = .newGame
+                self.configureVernierView()
                 self.updateUIState()
             })
             alert.addAction(yesAction)
@@ -397,14 +486,19 @@ class VCAppController: UIViewController, VCInputBarDelegate {
     func checkPressed() {
         var success = false
         var message = "That is incorrect. Please try again."
+        var sound = buzzerSound.pointee
         if let result = inputBar.doubleValue {
             if Int(result * 1000) == Int(vernierView.answer * 10) {
                 success = true
                 message = "You got it right! Let's try another."
+                sound = dingSound.pointee
                 gameState.score += 1
                 inputBar.dismiss()
                 updateGameTitles()
             }
+        }
+        if settings.sounds {
+            AudioServicesPlaySystemSound(sound)
         }
         let alert = UIAlertController(title: "Check", message: message, preferredStyle: .alert)
         let yesAction = UIAlertAction(title: "OK", style: .default, handler: { _ in
