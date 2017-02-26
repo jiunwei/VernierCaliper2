@@ -28,7 +28,7 @@ protocol VCInputBarDelegate: class {
     
     var doubleValue: Double? {
         let formatter = NumberFormatter()
-        formatter.locale = Locale.current
+        formatter.locale = VCAppController.locale
         return formatter.number(from: textField.text!)?.doubleValue
     }
     

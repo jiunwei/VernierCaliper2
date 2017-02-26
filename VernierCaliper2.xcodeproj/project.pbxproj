@@ -18,7 +18,6 @@
 		B5978FD41E3EE74A00BEAFDF /* VCVernierView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B5978FD31E3EE74A00BEAFDF /* VCVernierView.swift */; };
 		B5DD913D1E43684A00620010 /* smoke.png in Resources */ = {isa = PBXBuildFile; fileRef = B5DD913C1E43684A00620010 /* smoke.png */; };
 		B5F710791E3CC35B007B44B6 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = B5F710781E3CC35B007B44B6 /* AppDelegate.swift */; };
-		B5F7107B1E3CC35B007B44B6 /* ViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = B5F7107A1E3CC35B007B44B6 /* ViewController.swift */; };
 		B5F7107E1E3CC35B007B44B6 /* Main.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = B5F7107C1E3CC35B007B44B6 /* Main.storyboard */; };
 		B5F710801E3CC35B007B44B6 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = B5F7107F1E3CC35B007B44B6 /* Assets.xcassets */; };
 		B5F710831E3CC35B007B44B6 /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = B5F710811E3CC35B007B44B6 /* LaunchScreen.storyboard */; };
@@ -58,7 +57,6 @@
 		B5DD913C1E43684A00620010 /* smoke.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = smoke.png; sourceTree = "<group>"; };
 		B5F710751E3CC35B007B44B6 /* VernierCaliper2.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = VernierCaliper2.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		B5F710781E3CC35B007B44B6 /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
-		B5F7107A1E3CC35B007B44B6 /* ViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ViewController.swift; sourceTree = "<group>"; };
 		B5F7107D1E3CC35B007B44B6 /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/Main.storyboard; sourceTree = "<group>"; };
 		B5F7107F1E3CC35B007B44B6 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		B5F710821E3CC35B007B44B6 /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/LaunchScreen.storyboard; sourceTree = "<group>"; };
@@ -147,7 +145,6 @@
 				B5F710AA1E3DED12007B44B6 /* VCInputBar.swift */,
 				B5F710A81E3DECC5007B44B6 /* VCInputBar.xib */,
 				B5978FD31E3EE74A00BEAFDF /* VCVernierView.swift */,
-				B5F7107A1E3CC35B007B44B6 /* ViewController.swift */,
 			);
 			path = VernierCaliper2;
 			sourceTree = "<group>";
@@ -323,7 +320,6 @@
 				B5F710AB1E3DED12007B44B6 /* VCInputBar.swift in Sources */,
 				B5978FD01E3E39F400BEAFDF /* VCBackgroundView.swift in Sources */,
 				B5978FD41E3EE74A00BEAFDF /* VCVernierView.swift in Sources */,
-				B5F7107B1E3CC35B007B44B6 /* ViewController.swift in Sources */,
 				B5F710791E3CC35B007B44B6 /* AppDelegate.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;

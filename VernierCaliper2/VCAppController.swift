@@ -79,6 +79,8 @@ class VCAppController: UIViewController, GKGameCenterControllerDelegate, VCInput
     
     // MARK: - Properties
     
+    static var locale = Locale.current
+    
     @IBOutlet weak var alertView: UIView!
     
     @IBOutlet weak var newGameView: UIVisualEffectView!
@@ -109,7 +111,8 @@ class VCAppController: UIViewController, GKGameCenterControllerDelegate, VCInput
     
     private var currentMode = Mode.practice
     
-    private var gameState = GameState()
+    // Non-private for testing purposes.
+    var gameState = GameState()
     
     private var modeItems = [Mode: [UIBarButtonItem]]()
     
@@ -578,7 +581,7 @@ class VCAppController: UIViewController, GKGameCenterControllerDelegate, VCInput
                 gameState.score += 1
                 inputBar.dismiss()
                 updateGameTitles()
-                let alert = UIAlertController(title: "Check", message: "You got it right! Let's try another.", preferredStyle: .alert)
+                let alert = UIAlertController(title: "Check Answer", message: "You got it right! Let's try another.", preferredStyle: .alert)
                 let yesAction = UIAlertAction(title: "OK", style: .default, handler: { _ in
                     self.newObject()
                 })
@@ -599,10 +602,10 @@ class VCAppController: UIViewController, GKGameCenterControllerDelegate, VCInput
             case .point005:
                 formatString = "%.3f"
             }
-            let resultString = String(format: formatString, locale: Locale.current, vernierView.answer / 100.0)
-            let alert = UIAlertController(title: "Check", message: "That is incorrect. Would you like to know the correct answer?", preferredStyle: .alert)
+            let resultString = String(format: formatString, locale: VCAppController.locale, vernierView.answer / 100.0)
+            let alert = UIAlertController(title: "Check Answer", message: "That is incorrect. Would you like to know the correct answer?", preferredStyle: .alert)
             let yesAction = UIAlertAction(title: "Yes", style: .default, handler: { _ in
-                let answerAlert = UIAlertController(title: "Check", message: "The correct answer should be \(resultString) cm.", preferredStyle: .alert)
+                let answerAlert = UIAlertController(title: "Check Answer", message: "The answer should be \(resultString) cm.", preferredStyle: .alert)
                 let answerYesAction = UIAlertAction(title: "OK", style: .default, handler: nil)
                 answerAlert.addAction(answerYesAction)
                 self.present(answerAlert, animated: true, completion: nil)
@@ -612,7 +615,7 @@ class VCAppController: UIViewController, GKGameCenterControllerDelegate, VCInput
             alert.addAction(noAction)
             present(alert, animated: true, completion: nil)
         } else {
-            let alert = UIAlertController(title: "Check", message: "That is incorrect. Please try again.", preferredStyle: .alert)
+            let alert = UIAlertController(title: "Check Answer", message: "That is incorrect. Please try again.", preferredStyle: .alert)
             let yesAction = UIAlertAction(title: "OK", style: .default, handler: nil)
             alert.addAction(yesAction)
             present(alert, animated: true, completion: nil)

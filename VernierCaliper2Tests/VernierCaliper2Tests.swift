@@ -11,9 +11,12 @@ import XCTest
 
 class VernierCaliper2Tests: XCTestCase {
     
+    var appController: VCAppController!
+    
     override func setUp() {
         super.setUp()
         // Put setup code here. This method is called before the invocation of each test method in the class.
+        appController = UIApplication.shared.keyWindow!.rootViewController!.childViewControllers[0] as! VCAppController
     }
     
     override func tearDown() {
@@ -21,16 +24,36 @@ class VernierCaliper2Tests: XCTestCase {
         super.tearDown()
     }
     
-    func testExample() {
-        // This is an example of a functional test case.
-        // Use XCTAssert and related functions to verify your tests produce the correct results.
-    }
-    
-    func testPerformanceExample() {
-        // This is an example of a performance test case.
-        self.measure {
-            // Put the code you want to measure the time of here.
-        }
+    func testLocale() {
+        VCAppController.locale = Locale(identifier: "en_SG")
+        
+        var oldScore: Int
+        
+        oldScore = appController.gameState.score
+        appController.vernierView.answer = 217
+        appController.inputBar.textField.text = "2.17"
+        appController.checkPressed()
+        XCTAssert(appController.gameState.score == oldScore + 1, "Score not increased when answer uses decimal point correctly")
+        
+        oldScore = appController.gameState.score
+        appController.vernierView.answer = 217
+        appController.inputBar.textField.text = "2,17"
+        appController.checkPressed()
+        XCTAssert(appController.gameState.score == oldScore, "Score changed when answer uses decimal comma incorrectly")
+        
+        VCAppController.locale = Locale(identifier: "in")
+        
+        oldScore = appController.gameState.score
+        appController.vernierView.answer = 217
+        appController.inputBar.textField.text = "2,17"
+        appController.checkPressed()
+        XCTAssert(appController.gameState.score == oldScore + 1, "Score not increased when answer uses decimal comma correctly")
+        
+        oldScore = appController.gameState.score
+        appController.vernierView.answer = 217
+        appController.inputBar.textField.text = "2.17"
+        appController.checkPressed()
+        XCTAssert(appController.gameState.score == oldScore, "Score changed when answer uses decimal point incorrectly")
     }
     
 }
