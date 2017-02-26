@@ -294,7 +294,7 @@ class VCAppController: UIViewController, GKGameCenterControllerDelegate, VCInput
             message += "\nWARNING: You are not signed into Game Center and your scores cannot be submitted to the leaderboards. To sign in, go to Settings > Game Center from your Home screen.\n"
         }
         
-        let alert = UIAlertController(title: "Start Game", message: message + "\nAre you ready to start?", preferredStyle: .alert)
+        let alert = UIAlertController(title: "Start Game", message: "\(message)\nAre you ready to start?", preferredStyle: .alert)
         let yesAction = UIAlertAction(title: "Start", style: .default, handler: { _ in
             self.currentMode = .game
             self.configureVernierView()
@@ -349,7 +349,7 @@ class VCAppController: UIViewController, GKGameCenterControllerDelegate, VCInput
     // MARK: - Methods
     
     private func label(forPrecision precision: Precision) -> String {
-        return "Precision: " + precision.rawValue
+        return "Precision: \(precision.rawValue)"
     }
     
     private func label(forZero zero: Bool) -> String {
@@ -357,19 +357,19 @@ class VCAppController: UIViewController, GKGameCenterControllerDelegate, VCInput
     }
     
     private func label(forArrows arrows: Bool) -> String {
-        return "Arrows: " + (arrows ? "On" : "Off")
+        return "Hints: " + (arrows ? "On" : "Off")
     }
     
     private func label(forTimeLimit timeLimit: TimeLimit) -> String {
-        return "Time Limit: " + timeLimit.rawValue
+        return "Time Limit: \(timeLimit.rawValue)"
     }
     
     private func labelForScore() -> String {
-        return "Score: " + String(gameState.score)
+        return "Score: \(gameState.score)"
     }
     
     private func labelForTimeLeft() -> String {
-        return "Time Left: " + String(gameState.timeLeft) + " s"
+        return "Time Left: \(gameState.timeLeft) s"
     }
     
     private func label(forSounds sounds: Bool) -> String {
@@ -482,7 +482,7 @@ class VCAppController: UIViewController, GKGameCenterControllerDelegate, VCInput
                 AudioServicesPlaySystemSound(dingSound.pointee)
             }
             let reportedScore = gameState.score
-            let alert = UIAlertController(title: "Time's Up", message: "Your final score is " + String(gameState.score) + "!", preferredStyle: .alert)
+            let alert = UIAlertController(title: "Time's Up", message: "Your final score is \(gameState.score)!", preferredStyle: .alert)
             let yesAction = UIAlertAction(title: "Submit", style: .default, handler: { _ in
                 let handler = {
                     if GKLocalPlayer.localPlayer().isAuthenticated {
@@ -570,30 +570,53 @@ class VCAppController: UIViewController, GKGameCenterControllerDelegate, VCInput
     // MARK: - VCInputBarDelegate
     
     func checkPressed() {
-        var success = false
-        var message = "That is incorrect. Please try again."
-        var sound = buzzerSound.pointee
         if let result = inputBar.doubleValue {
             if Int(result * 1000) == Int(vernierView.answer * 10) {
-                success = true
-                message = "You got it right! Let's try another."
-                sound = dingSound.pointee
+                if settings.sounds {
+                    AudioServicesPlaySystemSound(dingSound.pointee)
+                }
                 gameState.score += 1
                 inputBar.dismiss()
                 updateGameTitles()
+                let alert = UIAlertController(title: "Check", message: "You got it right! Let's try another.", preferredStyle: .alert)
+                let yesAction = UIAlertAction(title: "OK", style: .default, handler: { _ in
+                    self.newObject()
+                })
+                alert.addAction(yesAction)
+                present(alert, animated: true, completion: nil)
+                return
             }
         }
+        
         if settings.sounds {
-            AudioServicesPlaySystemSound(sound)
+            AudioServicesPlaySystemSound(buzzerSound.pointee)
         }
-        let alert = UIAlertController(title: "Check", message: message, preferredStyle: .alert)
-        let yesAction = UIAlertAction(title: "OK", style: .default, handler: { _ in
-            if success {
-                self.newObject()
+        if currentMode == .practice {
+            var formatString: String
+            switch vernierView.precision {
+            case .point01:
+                formatString = "%.2f"
+            case .point005:
+                formatString = "%.3f"
             }
-        })
-        alert.addAction(yesAction)
-        present(alert, animated: true, completion: nil)
+            let resultString = String(format: formatString, locale: Locale.current, vernierView.answer / 100.0)
+            let alert = UIAlertController(title: "Check", message: "That is incorrect. Would you like to know the correct answer?", preferredStyle: .alert)
+            let yesAction = UIAlertAction(title: "Yes", style: .default, handler: { _ in
+                let answerAlert = UIAlertController(title: "Check", message: "The correct answer should be \(resultString) cm.", preferredStyle: .alert)
+                let answerYesAction = UIAlertAction(title: "OK", style: .default, handler: nil)
+                answerAlert.addAction(answerYesAction)
+                self.present(answerAlert, animated: true, completion: nil)
+            })
+            let noAction = UIAlertAction(title: "No", style: .cancel, handler: nil)
+            alert.addAction(yesAction)
+            alert.addAction(noAction)
+            present(alert, animated: true, completion: nil)
+        } else {
+            let alert = UIAlertController(title: "Check", message: "That is incorrect. Please try again.", preferredStyle: .alert)
+            let yesAction = UIAlertAction(title: "OK", style: .default, handler: nil)
+            alert.addAction(yesAction)
+            present(alert, animated: true, completion: nil)
+        }
     }
     
 }
