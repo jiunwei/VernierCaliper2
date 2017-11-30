@@ -32,7 +32,7 @@ class VCAppController: UIViewController, GKGameCenterControllerDelegate, VCInput
         case fifteen = "15 s"
     }
     
-    class Settings: NSObject, NSCoding {
+    @objc(_TtCC15VernierCaliper215VCAppController8Settings) class Settings: NSObject, NSCoding {
         var precision = Precision.point01
         var zero = false
         var arrows = true
@@ -457,7 +457,7 @@ class VCAppController: UIViewController, GKGameCenterControllerDelegate, VCInput
         newObject()
     }
     
-    func timerFired(_ timer: Timer) {
+    @objc func timerFired(_ timer: Timer) {
         gameState.timeLeft -= 1
         updateGameTitles()
         if gameState.timeLeft <= 5 && gameState.timeLeft > 0 {
@@ -551,13 +551,13 @@ class VCAppController: UIViewController, GKGameCenterControllerDelegate, VCInput
     
     // MARK: - Notification handlers
     
-    func keyboardWillShow(_ aNotification: Notification) {
+    @objc func keyboardWillShow(_ aNotification: Notification) {
         UIView.animate(withDuration: TimeInterval(UINavigationControllerHideShowBarDuration), animations: {
             self.vernierView.frame.origin.y -= (self.vernierView.origin.y - 20.0)
         })
     }
     
-    func keyboardWillHide(_ aNotification: Notification) {
+    @objc func keyboardWillHide(_ aNotification: Notification) {
         UIView.animate(withDuration: TimeInterval(UINavigationControllerHideShowBarDuration), animations: {
             self.vernierView.frame.origin.y = self.inputBar.frame.maxY
         })

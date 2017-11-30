@@ -437,8 +437,8 @@ import UIKit
     }
     
     private func redraw(layer: CALayer) {
-        let mainScaleTextAttributes = [NSFontAttributeName: UIFont.systemFont(ofSize: 14), NSForegroundColorAttributeName: UIColor.white]
-        let vernierScaleTextAttributes = [NSFontAttributeName: UIFont.systemFont(ofSize: 12), NSForegroundColorAttributeName: UIColor.white]
+        let mainScaleTextAttributes = [NSAttributedStringKey.font: UIFont.systemFont(ofSize: 14), NSAttributedStringKey.foregroundColor: UIColor.white]
+        let vernierScaleTextAttributes = [NSAttributedStringKey.font: UIFont.systemFont(ofSize: 12), NSAttributedStringKey.foregroundColor: UIColor.white]
         
         switch layer {
         case mainScaleLayer:
