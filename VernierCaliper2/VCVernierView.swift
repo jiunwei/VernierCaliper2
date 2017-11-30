@@ -133,6 +133,22 @@ import UIKit
     
     private var smokeDeadline = DispatchTime.distantFuture
     
+    private var leftEdge: CGFloat {
+        if #available(iOS 11.0, *) {
+            return safeAreaInsets.left + margin
+        } else {
+            return margin
+        }
+    }
+    
+    private var rightEdge: CGFloat {
+        if #available(iOS 11.0, *) {
+            return bounds.width - safeAreaInsets.right - margin
+        } else {
+            return bounds.width - margin
+        }
+    }
+    
     // MARK: - Initializers
     
     override init(frame: CGRect) {
@@ -300,7 +316,7 @@ import UIKit
         let point005LinesX = point005LinesLayer.position.x / scale
         
         // Calculate new scale and origin since bounds may have changed.
-        let widthScale = (bounds.width - 2.0 * margin) / width
+        let widthScale = (rightEdge - leftEdge) / width
         let heightScale = (bounds.height - 2.0 * margin) / height
         scale = min(widthScale, heightScale)
         let scaledWidth = width * scale
@@ -357,7 +373,7 @@ import UIKit
                 if objectLayer.position.y < origin.y + 130.0 * scale {
                     newPosition.x = max(newPosition.x, objectLayer.frame.maxX)
                 }
-                newPosition.x = min(newPosition.x, bounds.width - vWidth * scale - margin)
+                newPosition.x = min(newPosition.x, origin.x + (width - vWidth) * scale)
                 vernierScaleLayer.position = newPosition
                 positionArrows()
             default:
