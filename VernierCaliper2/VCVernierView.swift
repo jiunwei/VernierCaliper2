@@ -93,6 +93,8 @@ import UIKit
     
     var origin = CGPoint(x: 0.0, y: 0.0)
     
+    var translateUp = false
+    
     private var vWidth: CGFloat = 130.0
     
     private var draggedComponent = DraggedComponent.none
@@ -323,6 +325,9 @@ import UIKit
         let scaledHeight = height * scale
         origin.x = (bounds.width - scaledWidth) / 2.0
         origin.y = (bounds.height - scaledHeight) / 2.0
+        if translateUp {
+            origin.y = 20.0
+        }
         
         // Only redraw layers if scale has changed.
         if scale != oldScale {

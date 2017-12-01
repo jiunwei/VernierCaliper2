@@ -552,15 +552,13 @@ class VCAppController: UIViewController, GKGameCenterControllerDelegate, VCInput
     // MARK: - Notification handlers
     
     @objc func keyboardWillShow(_ aNotification: Notification) {
-        UIView.animate(withDuration: TimeInterval(UINavigationControllerHideShowBarDuration), animations: {
-            self.vernierView.frame.origin.y -= (self.vernierView.origin.y - 20.0)
-        })
+        self.vernierView.translateUp = true
+        self.vernierView.layoutSubviews()
     }
     
     @objc func keyboardWillHide(_ aNotification: Notification) {
-        UIView.animate(withDuration: TimeInterval(UINavigationControllerHideShowBarDuration), animations: {
-            self.vernierView.frame.origin.y = self.inputBar.frame.maxY
-        })
+        self.vernierView.translateUp = false
+        self.vernierView.layoutSubviews()
         updateUIState()
     }
     
